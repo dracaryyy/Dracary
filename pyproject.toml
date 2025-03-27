@@ -1,0 +1,12 @@
+[project]
+name = "dracary"
+version = "0.0.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiofiles>=24.1.0",
+    "baidusearch>=1.0.3",
+    "openai>=1.66.3",
+    "pydantic>=2.10.6",
+]
