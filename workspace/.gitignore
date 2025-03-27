@@ -1,0 +1,5 @@
+# Ignore everything in the workspace directory
+*
+
+# Exclude the .gitignore file itself
+!.gitignore
