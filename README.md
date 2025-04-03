@@ -1,4 +1,4 @@
-# Dracary
+# Dracary (early stage)
 
 An AI agent for generating task plans.
 
