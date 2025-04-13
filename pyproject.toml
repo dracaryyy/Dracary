@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "aiofiles~=24.1.0",
     "baidusearch~=1.0.3",
+    "mcp>=1.6.0",
     "openai~=1.66.3",
     "pydantic~=2.10.6",
 ]
