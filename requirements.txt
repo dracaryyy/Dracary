@@ -9,3 +9,9 @@ openai~=1.66.3
 
 # Data validation and settings management
 pydantic~=2.10.6
+
+# Model Context Protocol
+mcp~=1.6.0
+
+# HTTP client for Python
+httpx~=0.28.1

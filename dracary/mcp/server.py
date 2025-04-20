@@ -1,7 +1,17 @@
-import asyncio
+import json
+import httpx
+from typing import Any
 from dracary.agent.dracary import Dracary
+from mcp.server.fastmcp import FastMCP
 
-async def main():
+# Initialize Dracary MCP Server
+mcp = FastMCP("Dracary")
+
+# Initialize Dracary Agent
+dracary_agent = Dracary()
+
+@mcp.tool()
+async def query_dracary(input: str) -> str:
     # Get the task description from the console input
     user_prompt = input("Please enter the task description：\n")
     dracary_agent = Dracary()
@@ -17,6 +27,6 @@ async def main():
     print("\nThe task plan has been saved. The result is as follows:")
     return result
 
-# Run the asynchronous main function
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Run the Dracary MCP Server using standard I/O
+    mcp.run(transport='stdio')
