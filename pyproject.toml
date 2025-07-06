@@ -8,6 +8,7 @@ dependencies = [
     "aiofiles~=24.1.0",
     "baidusearch~=1.0.3",
     "httpx~=0.28.1",
+    "litellm~=1.65.0.post1",
     "mcp~=1.6.0",
     "openai~=1.66.3",
     "pydantic~=2.10.6",

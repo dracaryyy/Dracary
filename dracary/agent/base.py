@@ -9,11 +9,16 @@ class BaseAgent:
     def __init__(self):
         # Initialize the configuration loader
         config_loader = ConfigLoader()
-
+        
+        self.type = config_loader.get("llm.type")
         # Retrieve API Key and Base URL
         self.api_key = config_loader.get("openai.api_key")
         self.base_url = config_loader.get("openai.base_url")
 
+        # Retrieve LiteLLM configuration
+        self.litellm_key = config_loader.get("litellm.key")
+        self.litellm_model = config_loader.get("litellm.model")
+        
         # Initialize the DeepSeek client
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 

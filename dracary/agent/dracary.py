@@ -2,6 +2,8 @@ from dracary.agent.base import BaseAgent
 import json
 from typing import Dict, Any, List
 from dracary.prompt.dracary import SYSTEM_PROMPT, NEXT_STEP_PROMPT
+from litellm import completion as litellm_completion
+import os
 
 class Dracary(BaseAgent):
     """Dracary Agent: Capable of using multiple tools to execute tasks."""
@@ -10,7 +12,7 @@ class Dracary(BaseAgent):
         super().__init__()  # Call the base class initializer
         self.system_prompt = SYSTEM_PROMPT
         self.NEXT_STEP_PROMPT = NEXT_STEP_PROMPT
-
+        self.LOGGING = ""
     async def reason(self, user_prompt: str) -> Dict[str, Any]:
         """Reasoning and response."""
         response = self.client.chat.completions.create(
@@ -21,6 +23,7 @@ class Dracary(BaseAgent):
             ],
             tools=self.toolkit.get_tools(),
         )
+        print(response)
         return response.choices[0].message
 
     async def action(self, reason, file_path: str = "plan.txt"):
@@ -58,6 +61,102 @@ class Dracary(BaseAgent):
                     "tool": function_name,
                     "response": f"Error: {e}"
                 })
-
+        print(results)
         return results
+    
+    async def observe(self, reason: Dict[str, Any], action_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Perform reasoning and action, then generate an observation.
+
+        Args: 
+            reason (Dict[str, Any]): The reasoning result.
+            action_results (List[Dict[str, Any]]): The results of the actions performed.
+
+        Returns:
+            Dict[str, Any]: The observation containing the reasoning, actions, and results.
+        """
+        print("=== OBSERVATION PHASE ===")
+        
+
+        # Query the LLM to determine if the task is complete
+        try:
+            llm_response = self.client.chat.completions.create(
+                model="deepseek-chat",
+                messages=[
+                    {"role": "system", "content": "Determine if the task is complete based on the following context."},
+                    {"role": "user", "content":  self.LOGGING}
+                ]
+            )
+            completion_status = llm_response.choices[0].message["content"]
+        except Exception as e:
+            print(f"Error querying LLM for observation: {e}")
+            completion_status = "Error determining task completion."
+    
+    async def litellm_reason(self, user_prompt: str) -> Dict[str, Any]:
+        """Reasoning and response."""
+        response = litellm_completion(
+            model=self.litellm_model, 
+            messages=[
+                {"role": "user", "content": "hello from litellm"}
+            ],
+)
+        print(response)
+        return response
+
+    async def run(self, user_prompt: str) -> Dict[str, Any]:
+        """
+        Perform reasoning and action, then generate an observation.
+
+        Args:
+            user_prompt (str): The task description provided by the user.
+
+        Returns:
+            Dict[str, Any]: The observation containing the reasoning, actions, and results.
+        """
+        if self.type == "openai":
+            return await self.openai_run(user_prompt)
+        elif self.type == "litellm":
+            os.environ['DEEPSEEK_API_KEY'] = self.litellm_key
+            return await self.litellm_run(user_prompt)
+        else:
+            raise ValueError(f"Unsupported LLM type: {self.type}")
+    
+    async def openai_run(self, user_prompt: str) -> Dict[str, Any]:
+        """
+        Perform reasoning and action, then generate an observation.
+
+        Args:
+            user_prompt (str): The task description provided by the user.
+
+        Returns:
+            Dict[str, Any]: The observation containing the reasoning, actions, and results.
+        """
+        print("=== REASONING PHASE ===")
+        reason = await self.reason(user_prompt)
+        print(f"Reasoning Result: {reason}")
+
+        print("\n=== ACTION PHASE ===")
+        action_results = await self.action(reason)
+        print(f"Action Results: {action_results}")
+
+        print("\n=== OBSERVE PHASE ===")
+        observe_results = await self.observe(reason, action_results)
+        print(f"Observation Results: {observe_results}")
+        return observe_results
+    
+    async def litellm_run(self, user_prompt: str) -> Dict[str, Any]:
+        """
+        Perform reasoning and action, then generate an observation.
+
+        Args:
+            user_prompt (str): The task description provided by the user.
+
+        Returns:
+            Dict[str, Any]: The observation containing the reasoning, actions, and results.
+        """
+        print("=== REASONING PHASE ===")
+        reason = await self.litellm_reason(user_prompt)
+        print(f"Reasoning Result: {reason}")
+
+        return reason
     

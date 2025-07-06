@@ -1,6 +1,13 @@
+[llm]
+type = ""
+
 [openai]
 api_key = ""
 base_url = ""
+
+[litellm]
+key = ""
+model = ""
 
 [dir]
 workspace = "E:\\xx\\xx"
