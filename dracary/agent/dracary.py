@@ -6,7 +6,7 @@ from litellm import completion as litellm_completion
 import os
 import logging
 
-logging.basicConfig(filename='./workspace/demo.log', filemode="a", encoding="utf-8", level=logging.DEBUG)
+logging.basicConfig(filename='./workspace/state-demo.log', filemode="a", encoding="utf-8", level=logging.DEBUG)
 
 class Dracary(BaseAgent):
     """Dracary Agent: Capable of using multiple tools to execute tasks."""
@@ -15,7 +15,7 @@ class Dracary(BaseAgent):
         super().__init__()  # Call the base class initializer
         self.system_prompt = SYSTEM_PROMPT
         self.NEXT_STEP_PROMPT = NEXT_STEP_PROMPT
-        self.MEMORY = ""
+        self.State = ""
     async def reason(self, user_prompt: str) -> Dict[str, Any]:
         """Reasoning and response."""
         response = self.client.chat.completions.create(
@@ -27,8 +27,8 @@ class Dracary(BaseAgent):
             tools=self.toolkit.get_tools(),
         )
         print(response)
-        # 记录问答到memory
-        self.MEMORY += f"\n用户: {user_prompt}\n助手: {response.choices[0].message['content'] if isinstance(response.choices[0].message, dict) else response.choices[0].message}\n"
+        # 记录问答到State
+        self.State += f"\n用户: {user_prompt}\n助手: {response.choices[0].message['content'] if isinstance(response.choices[0].message, dict) else response.choices[0].message}\n"
         return response.choices[0].message
 
     async def action(self, reason, file_path: str = "plan.txt"):
@@ -89,7 +89,7 @@ class Dracary(BaseAgent):
                 model="deepseek-chat",
                 messages=[
                     {"role": "system", "content": "Determine if the task is complete based on the following context."},
-                    {"role": "user", "content":  self.MEMORY}
+                    {"role": "user", "content":  self.State}
                 ]
             )
             completion_status = llm_response.choices[0].message["content"]
@@ -102,13 +102,14 @@ class Dracary(BaseAgent):
         response = litellm_completion(
             model=self.litellm_model, 
             messages=[
-                {"role": "user", "content": "hello from litellm"}
+                {"role": "system", "content": self.system_prompt},
+                {"role": "user", "content": user_prompt}
             ],
 )
         print(response)
-        # 记录问答到memory
+        # 记录问答到State
         answer = response['choices'][0]['message']['content'] if isinstance(response, dict) else str(response)
-        self.MEMORY += f"\n用户: {user_prompt}\n助手: {answer}\n"
+        self.State += f"\n用户: {user_prompt}\n助手: {answer}\n"
         return response
 
     async def run(self, user_prompt: str) -> Dict[str, Any]:
@@ -150,8 +151,8 @@ class Dracary(BaseAgent):
         print("\n=== OBSERVE PHASE ===")
         observe_results = await self.observe(reason, action_results)
         print(f"Observation Results: {observe_results}")
-        # 运行结束后将memory添加到log文件中
-        logging.info("Memory Log:\n" + self.MEMORY)
+        # 运行结束后将State添加到log文件中
+        logging.info("State Log:\n" + self.State)
         return observe_results
 
     async def litellm_run(self, user_prompt: str) -> Dict[str, Any]:
@@ -167,6 +168,7 @@ class Dracary(BaseAgent):
         print("=== REASONING PHASE ===")
         reason = await self.litellm_reason(user_prompt)
         print(f"Reasoning Result: {reason}")
-        print("Memory" + self.MEMORY)
-        # 运行结束后将memory添加到log文件中
-        logging.info("Memory Log:\n" + self.MEMORY)
+        print("State" + self.State)
+        # 运行结束后将State添加到log文件中
+        logging.info("State Log:\n" + self.State)
+        return reason
