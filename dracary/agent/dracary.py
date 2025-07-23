@@ -6,7 +6,8 @@ from litellm import completion as litellm_completion
 import os
 import logging
 
-logging.basicConfig(filename='./workspace/state-demo.log', filemode="a", encoding="utf-8", level=logging.DEBUG)
+logging.basicConfig(filename='./workspace/state-demo.log', filemode="a", encoding="utf-8", level=logging.INFO)
+logging.getLogger("LiteLLM").disabled = True  # 屏蔽 litellm 日志
 
 class Dracary(BaseAgent):
     """Dracary Agent: Capable of using multiple tools to execute tasks."""

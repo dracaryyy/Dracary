@@ -2,7 +2,9 @@ import asyncio
 from dracary.agent.dracary import Dracary
 import logging
 
+
 logging.basicConfig(filename='./workspace/session-demo.log', filemode="a", encoding="utf-8", level=logging.INFO)
+logging.getLogger("LiteLLM").disabled = True  # 屏蔽 litellm 日志
 
 async def main():
     # 初始化代理

@@ -11,3 +11,8 @@ model = ""
 
 [dir]
 workspace = "E:\\xx\\xx"
+
+[embedding_api]
+url = ""
+model = ""
+api_key = ""
